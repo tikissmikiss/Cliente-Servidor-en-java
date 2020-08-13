@@ -1,14 +1,13 @@
-package tcp_ip.tcp.threads.exceptions;
+package exceptions;
 
-public class IpAddressException extends Exception {
-    private static final long serialVersionUID = 7128738470705390964L;
-
+public class RangePortsException extends Exception {
+    private static final long serialVersionUID = -532468093245046863L;
     /**
      * Constructs a {@code NoSuchElementException} with {@code "dirección IP no valida"}
      * as its error message string.
      */
-    public IpAddressException() {
-        super("dirección IP no valida");
+    public RangePortsException() {
+        super("puerto fuera de rango");
     }
 
     /**
@@ -18,7 +17,7 @@ public class IpAddressException extends Exception {
      *
      * @param   s   the detail message.
      */
-    public IpAddressException(String s) {
+    public RangePortsException(String s) {
         super(s);
     }
 }

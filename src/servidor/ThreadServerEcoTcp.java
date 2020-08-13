@@ -1,4 +1,4 @@
-package tcp_ip.tcp.threads;
+package servidor;
 
 import java.io.IOException;
 import java.io.InputStream;

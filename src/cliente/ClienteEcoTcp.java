@@ -1,4 +1,4 @@
-package tcp_ip.tcp.threads;
+package cliente;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,8 +9,9 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
-import tcp_ip.tcp.threads.exceptions.IpAddressException;
-import tcp_ip.tcp.threads.exceptions.RangePortsException;
+import exceptions.IpAddressException;
+import exceptions.RangePortsException;
+import servidor.PortsManager;
 
 public class ClienteEcoTcp extends Thread {
     // PC:192.168.0.160
@@ -63,34 +64,39 @@ public class ClienteEcoTcp extends Thread {
     private static int solicitarPuertoAUsuario() {
         Scanner s = new Scanner(System.in);
         String in = null;
-        while (in != "") {
-            System.out.print("Seleccione el puerto de escucha del servidor.");
-            System.out.println("\t<<< Press ENTER to Default >>>");
+        do {
+            System.out.println("Seleccione el puerto de escucha del servidor.");
+            System.out.println("<<< Press ENTER to Default >>>");
             in = s.nextLine();
+            if (in.equals(""))
+                break;
             try {
                 // comprobar entrada
                 if (0 <= Integer.parseInt(in) && Integer.parseInt(in) < Math.pow(2, 16)) {
-                int p = Integer.parseInt(in);
-                s.close();
-                return p;
-                } else throw new RangePortsException();
+                    int p = Integer.parseInt(in);
+                    s.close();
+                    return p;
+                } else
+                    throw new RangePortsException();
             } catch (NumberFormatException e) {
-                System.out.println("\nERROR: El valor introducido no es valido !!!\n");
+                System.err.println("ERROR: El valor introducido no es valido !!!");
             } catch (RangePortsException e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
-        }
+        } while (!in.equals(""));
         return DEFAULT_PORT;
     }
 
     private static String solicitarDireccionAUsuario() {
         Scanner s = new Scanner(System.in);
         String in = null;
-        while (in != "") {
+        do {
             try {
-                System.out.println("\nIntroduzca la dirección IP del servidor.");
+                System.out.println("Introduzca la dirección IP del servidor.");
                 System.out.println("<<< Press ENTER to Default >>>");
                 in = s.nextLine();
+                if (in.equals(""))
+                    break;
                 // comprobar entrada
                 StringTokenizer st = new StringTokenizer(in, ".");
                 try {
@@ -99,23 +105,17 @@ public class ClienteEcoTcp extends Thread {
                             ;
                         else
                             throw new IpAddressException();
+                    return in;
                 } catch (NoSuchElementException e) {
                     throw new IpAddressException();
                 } catch (NumberFormatException e) {
                     throw new IpAddressException();
                 }
             } catch (IpAddressException e) {
-                System.err.println(e);
+                System.err.println(e.getMessage());
             }
-
-            // if (!in.equals("")) {
-            // int p = Integer.parseInt(in);
-            // s.close();
-            // return in;
-            // }
-        }
+        } while (!in.equals(""));
         return DEFAULT_ADDRESS;
-
     }
 
     @Override
@@ -190,7 +190,7 @@ public class ClienteEcoTcp extends Thread {
         int puerto = solicitarPuertoAUsuario();
         String direccion = solicitarDireccionAUsuario();
 
-        ClienteEcoTcp c = new ClienteEcoTcp(puerto);
-
+        ClienteEcoTcp c = new ClienteEcoTcp(direccion, puerto, "Cliente " + puerto);
+        c.start();
     }
 }

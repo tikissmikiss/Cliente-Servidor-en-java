@@ -1,4 +1,4 @@
-package tcp_ip.tcp.threads;
+package servidor;
 
 public interface TypePort {
     final static int LISTEN_PORT = 0;

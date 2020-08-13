@@ -1,4 +1,4 @@
-package tcp_ip.tcp.threads;
+package servidor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,7 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 
-import tcp_ip.tcp.threads.exceptions.RangePortsException;
+import exceptions.RangePortsException;
 
 // PC:192.168.0.160
 // Portatil:192.168.0.169
