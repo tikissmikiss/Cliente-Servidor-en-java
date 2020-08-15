@@ -28,8 +28,8 @@ public class ServidorEcoTcp extends Thread {
     private int solicitarPuertoAUsuario() {
         Scanner s = new Scanner(System.in);
         while (true) {
-            System.out.println(
-                    "\nSeleccione un puerto de escucha (" + PortsManager.MIN_PORT + " - " + PortsManager.MAX_PORT + ").");
+            System.out.println("\nSeleccione un puerto de escucha (" + PortsManager.MIN_PORT + " - "
+                    + PortsManager.MAX_PORT + ").");
             System.out.println("<<< Press ENTER to Default >>>");
             String in = s.nextLine();
             try {
@@ -87,12 +87,6 @@ public class ServidorEcoTcp extends Thread {
                 final char[] chars = new char[nBytes];
                 for (int i = 0; i < chars.length; i++)
                     chars[i] = (char) b[i];
-                // for (int i = 0; i < b.length; i++)
-                // if (i < chars.length)
-                // chars[i] = (char) b[i];
-                // else
-                // b[i] = 0;
-
                 // comprobar que el eco del puerto es correcto
                 if (Integer.valueOf(String.valueOf(chars)) != puertoConnect) {
                     break;
@@ -108,8 +102,10 @@ public class ServidorEcoTcp extends Thread {
             serverSocket.close();
             throw new ConnectException("Servidor en " + puerto + "Puerto negociado incorrecto");
         } catch (ConnectException e) {
-            System.out.println(e.toString());
-        } catch (IOException e) {}
+            System.err.println(e.toString());
+        } catch (IOException e) {
+            System.err.println(e);
+        }
     }
 
     public static void main(final String[] args) throws IOException {

@@ -68,12 +68,12 @@ public class ThreadServerEcoTcp extends Thread {
             salida.close();
         } catch (final SocketException e) {
             ConexionesActivas--;
-            System.out.println("Servidor en " + puerto + " dice: Conexión perdida !!!");
+            System.err.println("Servidor en " + puerto + " dice: Conexión perdida !!!");
         } catch (final IOException e) {
             e.printStackTrace();
         } finally {
             // TODO meter puerto en la cola de disponibles
-            System.out.println("Servidor en " + puerto + " dice: finally");
+            System.err.println("Servidor en " + puerto + " dice: finally TODO meter puerto en la cola de disponibles");
         }
         System.out.println("Servidor en " + puerto + " dice: Conexión finalizada por el cliente.");
     }
