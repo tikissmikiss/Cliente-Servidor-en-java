@@ -108,6 +108,7 @@ public class ServidorEcoTcp extends Thread {
         }
     }
 
+    // TODO borrar despues de externalizar
     public static void main(final String[] args) throws IOException {
         ServidorEcoTcp serv = new ServidorEcoTcp("ServidorEco");
         serv.start();

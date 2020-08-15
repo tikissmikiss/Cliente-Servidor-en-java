@@ -1,5 +1,8 @@
+import servidor.ServidorEcoTcp;
+
 public class AppServidor {
     public static void main(String[] args) throws Exception {
-        System.out.println("Hello, World!");
+        ServidorEcoTcp s = new ServidorEcoTcp("ServidorEco");
+        s.start();
     }
 }
