@@ -15,11 +15,11 @@ import servidor.PortsManager;
 
 public class ClienteEcoTcp extends Thread {
     // PC:192.168.0.160
-    // Portatil:192.168.0.169
+    // Portátil:192.168.0.169
     // Movil:192.168.0.3
     private final static int DEFAULT_PORT = 1024;
     private final static String DEFAULT_ADDRESS = "192.168.0.160";
-    private String direccion;
+    private String dirección;
     private int puerto;
 
     private PortsManager pm;
@@ -28,36 +28,36 @@ public class ClienteEcoTcp extends Thread {
     public ClienteEcoTcp(int puerto, String nombreThread) {
         super(nombreThread);
         this.puerto = puerto;
-        this.direccion = DEFAULT_ADDRESS;
+        this.dirección = DEFAULT_ADDRESS;
     }
 
     public ClienteEcoTcp(int puerto) {
         super();
         this.puerto = puerto;
-        this.direccion = DEFAULT_ADDRESS;
+        this.dirección = DEFAULT_ADDRESS;
     }
 
-    public ClienteEcoTcp(String direccion, String nombreThread) {
+    public ClienteEcoTcp(String dirección, String nombreThread) {
         super(nombreThread);
-        this.direccion = direccion;
+        this.dirección = dirección;
         this.puerto = DEFAULT_PORT;
     }
 
-    public ClienteEcoTcp(String direccion) {
+    public ClienteEcoTcp(String dirección) {
         super();
-        this.direccion = direccion;
+        this.dirección = dirección;
         this.puerto = DEFAULT_PORT;
     }
 
-    public ClienteEcoTcp(String direccion, int puerto, String nombreThread) {
+    public ClienteEcoTcp(String dirección, int puerto, String nombreThread) {
         super(nombreThread);
-        this.direccion = direccion;
+        this.dirección = dirección;
         this.puerto = puerto;
     }
 
-    public ClienteEcoTcp(String direccion, int puerto) {
+    public ClienteEcoTcp(String dirección, int puerto) {
         super();
-        this.direccion = direccion;
+        this.dirección = dirección;
         this.puerto = puerto;
     }
 
@@ -87,7 +87,7 @@ public class ClienteEcoTcp extends Thread {
         return DEFAULT_PORT;
     }
 
-    private static String solicitarDireccionAUsuario() {
+    private static String solicitarDirecciónAUsuario() {
         Scanner s = new Scanner(System.in);
         String in = null;
         do {
@@ -123,7 +123,7 @@ public class ClienteEcoTcp extends Thread {
         System.out.print("Cliente en " + puerto + " dice: Conectado con: ");
         Socket tcp, tcp2;
         try {
-            tcp = new Socket(direccion, puerto);
+            tcp = new Socket(dirección, puerto);
             System.out.println(tcp.toString());
             // conectar salida
             OutputStream salida = tcp.getOutputStream();
@@ -151,7 +151,7 @@ public class ClienteEcoTcp extends Thread {
                 chars[i] = (char) bufferIn[i];
             puerto = Integer.valueOf(String.valueOf(chars));
             // actualizar socket para establecer la comunicación
-            tcp2 = new Socket(direccion, puerto);
+            tcp2 = new Socket(dirección, puerto);
             salida = tcp2.getOutputStream();
             entrada = tcp2.getInputStream();
 
@@ -188,9 +188,15 @@ public class ClienteEcoTcp extends Thread {
 
     public static void main(String[] args) throws UnknownHostException, IOException {
         int puerto = solicitarPuertoAUsuario();
-        String direccion = solicitarDireccionAUsuario();
+        String dirección = solicitarDirecciónAUsuario();
 
-        ClienteEcoTcp c = new ClienteEcoTcp(direccion, puerto, "Cliente " + puerto);
+        ClienteEcoTcp c = new ClienteEcoTcp(dirección, puerto, "Cliente " + puerto);
         c.start();
+
+        ClienteEcoTcp c2 = new ClienteEcoTcp(dirección, puerto, "Cliente " + puerto);
+        c2.start();
+
+        ClienteEcoTcp c3 = new ClienteEcoTcp(dirección, puerto, "Cliente " + puerto);
+        c3.start();
     }
 }
