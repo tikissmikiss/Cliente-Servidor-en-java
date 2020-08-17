@@ -2,9 +2,8 @@ package cliente;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.Socket;
@@ -16,11 +15,186 @@ import exceptions.IpAddressException;
 import exceptions.RangePortsException;
 
 public class Cliente extends Thread {
-    // PC:192.168.0.160
-    // Portátil:192.168.0.169
-    // Movil:192.168.0.3
-    private final static int DEFAULT_PORT = 1024;
-    private final static String DEFAULT_ADDRESS = "192.168.0.160";
+
+    @Override
+    public void run() {
+        Socket tcp, tcp2;
+        try {
+
+            // instanciar socket
+            tcp = new Socket(address, puerto);
+            consola.print("Cliente en " + puerto + " dice: Conectado con: ");
+            consola.println(tcp.toString());
+
+            /*
+             * En vez de usar directamente los Streams que proporciona el Socket como en la
+             * versión anterior, utiliza un Reader y un Writer para compatibilizar sistemas
+             * de codificación de caracteres enviando caracteres en vez de bytes
+             */
+            // conectar salida
+            // TODO OutputStream salida = tcp.getOutputStream();
+            OutputStreamWriter salida = new OutputStreamWriter(tcp.getOutputStream());
+
+            // conectamos entrada
+            // TODO InputStream entrada = tcp.getInputStream();
+            InputStreamReader entrada = new InputStreamReader(tcp.getInputStream());
+
+            // buffer de transmisión
+            char[] bufferOut = new char[256];
+            // buffer de recepción
+            char[] bufferIn = new char[256];
+            // para longitudes de los paquetes de entrada y salida
+            int longOut = 0, longIn = 0;
+
+            // BufferedReader socketReader = new BufferedReader(new
+            // InputStreamReader(entrada));
+            // PrintWriter socketWriter = new PrintWriter(salida, true);
+            // BufferedWriter socketWriter = new BufferedWriter(new
+            // OutputStreamWriter(salida));
+            // DataInputStream socketReader = new DataInputStream(entrada);
+            // DataOutputStream socketWriter = new DataOutputStream(salida);
+
+            // esperar puerto de conexión
+            longIn = entrada.read(bufferIn);
+
+            // mostrar puerto recibido
+            consola.print("Servidor en " + puerto + " dice: ");
+            // TODO consola.write(bufferIn, 0, longIn);
+            consola.println(bufferIn);
+            consola.println();
+
+            // devolver eco
+            salida.write(bufferIn, 0, longIn);
+
+            // procesar lectura
+            char[] chars = new char[longIn];
+            for (int i = 0; i < chars.length; i++)
+                chars[i] = (char) bufferIn[i];
+            puerto = Integer.valueOf(String.valueOf(chars));
+
+            // actualizar socket para establecer la comunicación
+            tcp2 = new Socket(address, puerto);
+            // TODO salida = tcp2.getOutputStream();
+            // TODO entrada = tcp2.getInputStream();
+            salida = new OutputStreamWriter(tcp2.getOutputStream());
+            entrada = new InputStreamReader(tcp2.getInputStream());
+
+            while (longOut >= 0) {
+                // leer una linea.
+                // Carga el buffer en el array y se almacena la longitud devuelta
+                longOut = teclado.read(bufferOut);
+
+                // enviarla por el socket
+                salida.write(bufferOut, 0, longOut);
+                /*
+                 * Comprueba si cliente termina la conexión. comprueba los dos primeros bytes
+                 * para compatibilizar con sistemas solo CR (retorno de carro) y con sistemas
+                 * CRLF (retorno de carro)+(salto de línea)
+                 */
+                final byte cr = (byte) '\n'; // '\n'=10
+                if (bufferOut[0] == cr || bufferOut[1] == cr)
+                    break;
+                // leer la respuesta
+                // Se carga el buffer en el array y se almacena la longitud devuelta
+                longIn = entrada.read(bufferIn);
+                // mostrar respuesta
+                consola.print("Servidor en " + puerto + " dice: ");
+                consola.write(bufferIn, 0, longIn);
+            }
+            tcp.close();
+            tcp2.close();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (ConnectException e) {
+            if (e.getMessage().equals("Connection refused: connect")) {
+                System.err.println("Imposible conectar con el servidor !!!");
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static int solicitarPuertoAUsuario() throws IOException {
+
+        String in = null;
+        
+        do {
+
+            consola.println("Seleccione el puerto de escucha del servidor.");
+            consola.println("<<< Press ENTER to Default (" + DEFAULT_PORT + ") >>>");
+
+            in = teclado.readLine();
+
+            if (in.equals(""))
+                break;
+
+            try {
+
+                // comprobar entrada
+                if (0 <= Integer.parseInt(in) && Integer.parseInt(in) < Math.pow(2, 16)) {
+                    int p = Integer.parseInt(in);
+                    return p;
+                } else
+                    throw new RangePortsException();
+
+            } catch (NumberFormatException e) {
+                System.err.println("ERROR: El valor introducido no es valido !!!");
+                e.printStackTrace();
+            } catch (RangePortsException e) {
+                System.err.println(e.getMessage());
+                e.printStackTrace();
+            }
+
+        } while (!in.equals(""));
+        return DEFAULT_PORT;
+    }
+
+    private static String solicitarAddressAUsuario() throws IOException {
+        String in = null;
+
+        do {
+
+            try {
+
+                consola.println("Introduzca la dirección IP del servidor.");
+                consola.println("<<< Press ENTER to Default (" + DEFAULT_ADDRESS + ") >>>");
+                in = teclado.readLine();
+
+                if (in.equals(""))
+                    break;
+
+                // comprobar entrada
+                StringTokenizer st = new StringTokenizer(in, ".");
+
+                try {
+
+                    for (int i = 0; i < 4; i++)
+                        if (Integer.parseInt(st.nextToken()) <= 255)
+                            ; // Sin cuerpo. Si el bucle concluye significa que la entrada es correcta
+                        else
+                            throw new IpAddressException();
+
+                    return in;
+
+                } catch (NoSuchElementException e) {
+                    e.printStackTrace();
+                    throw new IpAddressException();
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                    throw new IpAddressException();
+                }
+
+            } catch (IpAddressException e) {
+                System.err.println(e.getMessage());
+                e.printStackTrace();
+            }
+
+        } while (!in.equals(""));
+
+        return DEFAULT_ADDRESS;
+    }
+
     private String address;
     private int puerto;
 
@@ -88,7 +262,7 @@ public class Cliente extends Thread {
      * La clase java.nio.charset.CharsetEncoder debe usarse cuando se requiere más
      * control sobre el proceso de codificación.
      */
-     private static PrintWriter pantalla = new PrintWriter(System.out, true);
+    private static PrintWriter consola = new PrintWriter(System.out, true);
 
     // constructores
     public Cliente(int puerto, String nombreThread) {
@@ -131,149 +305,29 @@ public class Cliente extends Thread {
         super();
         try {
             address = solicitarAddressAUsuario();
-            System.out.println("Dirección seleccionada: " + address + "\n");
+            consola.println("Dirección seleccionada: " + address + "\n");
             puerto = solicitarPuertoAUsuario();
-            System.out.println("Puerto seleccionada: " + puerto + "\n");
+            consola.println("Puerto seleccionada: " + puerto + "\n");
         } catch (IOException e) {
             System.err.println("Error de E/S");
             e.printStackTrace();
         }
 
     }
-
-    private static int solicitarPuertoAUsuario() throws IOException {
-        String in = null;
-        do {
-            pantalla.println("Seleccione el puerto de escucha del servidor.");
-            pantalla.println("<<< Press ENTER to Default (" + DEFAULT_PORT + ") >>>");
-
-            in = teclado.readLine();
-
-            if (in.equals(""))
-                break;
-            try {
-                // comprobar entrada
-                if (0 <= Integer.parseInt(in) && Integer.parseInt(in) < Math.pow(2, 16)) {
-                    int p = Integer.parseInt(in);
-                    return p;
-                } else
-                    throw new RangePortsException();
-            } catch (NumberFormatException e) {
-                System.err.println("ERROR: El valor introducido no es valido !!!");
-            } catch (RangePortsException e) {
-                System.err.println(e.getMessage());
-            }
-        } while (!in.equals(""));
-        return DEFAULT_PORT;
-    }
-
-    private static String solicitarAddressAUsuario() throws IOException {
-        String in = null;
-        do {
-            try {
-                pantalla.println("Introduzca la dirección IP del servidor.");
-                pantalla.println("<<< Press ENTER to Default (" + DEFAULT_ADDRESS + ") >>>");
-                in = teclado.readLine();
-                if (in.equals(""))
-                    break;
-                // comprobar entrada
-                StringTokenizer st = new StringTokenizer(in, ".");
-                try {
-                    for (int i = 0; i < 4; i++)
-                        if (Integer.parseInt(st.nextToken()) <= 255)
-                            ; // Sin cuerpo. Si el bucle concluye significa que la entrada es correcta
-                        else
-                            throw new IpAddressException();
-                    return in;
-                } catch (NoSuchElementException e) {
-                    throw new IpAddressException();
-                } catch (NumberFormatException e) {
-                    throw new IpAddressException();
-                }
-            } catch (IpAddressException e) {
-                System.err.println(e.getMessage());
-            }
-        } while (!in.equals(""));
-        return DEFAULT_ADDRESS;
-    }
-
-    @Override
-    public void run() {
-        Socket tcp, tcp2;
-        try {
-            tcp = new Socket(address, puerto);
-            System.out.print("Cliente en " + puerto + " dice: Conectado con: ");
-            System.out.println(tcp.toString());
-            // conectar salida
-            OutputStream salida = tcp.getOutputStream();
-            // conectamos entrada
-            InputStream entrada = tcp.getInputStream();
-            // buffer de transmisión
-            byte[] bufferOut = new byte[256];
-            // buffer de recepción
-            byte[] bufferIn = new byte[256];
-            // para longitudes de los paquetes de entrada y salida
-            int longOut = 0, longIn = 0;
-
-            // esperar puerto de conexión
-            longIn = entrada.read(bufferIn);
-            // mostrar puerto recibido
-            System.out.print("Servidor en " + puerto + " dice: ");
-            System.out.write(bufferIn, 0, longIn);
-            System.out.println();
-            // devolver eco
-            salida.write(bufferIn, 0, longIn);
-
-            // procesar lectura
-            char[] chars = new char[longIn];
-            for (int i = 0; i < chars.length; i++)
-                chars[i] = (char) bufferIn[i];
-            puerto = Integer.valueOf(String.valueOf(chars));
-            // actualizar socket para establecer la comunicación
-            tcp2 = new Socket(address, puerto);
-            salida = tcp2.getOutputStream();
-            entrada = tcp2.getInputStream();
-
-            while (longOut >= 0) {
-                // leer una linea.
-                // Se carga el buffer en el array y se almacena la longitud devuelta
-                longOut = System.in.read(bufferOut);
-                // enviarla por el socket
-                salida.write(bufferOut, 0, longOut);
-                /*
-                 * Comprueba si cliente termina la conexión. comprueba los dos primeros bytes
-                 * para compatibilizar con sistemas solo CR (retorno de carro) y con sistemas
-                 * CRLF (retorno de carro)+(salto de línea)
-                 */
-                final byte cr = (byte) '\n'; // '\n'=10
-                if (bufferOut[0] == cr || bufferOut[1] == cr)
-                    break;
-                // leer la respuesta
-                // Se carga el buffer en el array y se almacena la longitud devuelta
-                longIn = entrada.read(bufferIn);
-                // mostrar respuesta
-                System.out.print("Servidor en " + puerto + " dice: ");
-                System.out.write(bufferIn, 0, longIn);
-            }
-            tcp.close();
-            tcp2.close();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (ConnectException e) {
-            if (e.getMessage().equals("Connection refused: connect")) {
-                System.err.println("Imposible conectar con el servidor !!!");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    
+    // PC:192.168.0.160
+    // Portátil:192.168.0.169
+    // Movil:192.168.0.3
+    private final static int DEFAULT_PORT = 1024;
+    private final static String DEFAULT_ADDRESS = "192.168.0.169";
 
     // // TODO eliminar después de externalizar
-    // public static void main(String[] args) throws UnknownHostException, IOException {
-    //     // int puerto = solicitarPuertoAUsuario();
-    //     // String address = solicitarAddressAUsuario();
+    // public static void main(String[] args) throws UnknownHostException,
+    // IOException {
+    // // int puerto = solicitarPuertoAUsuario();
+    // // String address = solicitarAddressAUsuario();
 
-    //     Cliente c = new Cliente();
-    //     c.start();
+    // Cliente c = new Cliente();
+    // c.start();
     // }
 }

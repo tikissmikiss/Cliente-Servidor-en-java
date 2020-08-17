@@ -1,27 +1,169 @@
 package servidor;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Scanner;
 
 import exceptions.RangePortsException;
 
 public class Servidor extends Thread {
+
+    private int solicitarPuertoAUsuario() {
+
+        final Scanner s = new Scanner(System.in);
+
+        while (true) {
+
+            consola.println("\nSeleccione un puerto de escucha (" + PortsManager.MIN_PORT + " - "
+                    + PortsManager.MAX_PORT + ").");
+
+            consola.println("<<< Press ENTER to Default >>>");
+
+            try {
+
+                // TODO final String in = s.nextLine();
+                final String in = teclado.readLine();
+
+                if (!in.equals("")) {
+
+                    if (PortsManager.MIN_PORT < Integer.parseInt(in) && Integer.parseInt(in) < PortsManager.MAX_PORT) {
+                        pm = new PortsManager(Integer.parseInt(in));
+                        break;
+                    } else {
+                        throw new RangePortsException();
+                    }
+
+                } else {
+
+                    pm = new PortsManager(PortsManager.DEFAULT_LISTEN_PORT);
+                    break;
+
+                }
+
+            } catch (final NumberFormatException e) {
+                System.err.println("\nERROR: El valor introducido no es valido !!!\n");
+                e.printStackTrace();
+            } catch (final RangePortsException e) {
+                System.err.println("\nERROR: Valor fuera del rango permitido. !!!\n");
+                e.printStackTrace();
+            } catch (IOException e) {
+                System.err.println("\nERROR de E/S\n");
+                e.printStackTrace();
+            }
+
+        }
+
+        s.close();
+        return pm.getListenPort();
+    }
+
+
+
+    @Override
+    public void run() {
+
+        puerto = solicitarPuertoAUsuario();
+        int puertoConnect = puerto;
+
+        try {
+
+            // instanciar socket servidor
+            serverSocket = new ServerSocket(puerto);
+
+            while (true) {
+
+                // informar de escucha
+                consola.println("Servidor en " + puerto + " dice: " + "Servidor a la escucha");
+
+                // instanciar socket para recepciones
+                Socket socket;
+
+                // Guardar el socket del cliente cuando inicie comunicación
+                socket = serverSocket.accept();
+
+                // mostrar información de socket cliente
+                consola.println("Servidor en " + puerto + " dice: Conectado con: " + socket);
+
+                // conectar salida
+                // TODO final OutputStream salida = socket.getOutputStream();
+                final OutputStreamWriter salida = new OutputStreamWriter(socket.getOutputStream());
+
+                // conectar entrada
+                // TODO final InputStream entrada = socket.getInputStream();
+                final InputStreamReader entrada = new InputStreamReader(socket.getInputStream());
+                
+                // Para informar del puerto a usar en la conexión
+                // TODO final PrintStream ps = new PrintStream(salida, true);
+                // TODO ps.println(++puertoConnect);
+                salida.write(String.valueOf(++puertoConnect));
+
+                // mostrar puerto de nueva conexión
+                consola.println("Servidor en " + puerto + " dice: Puerto para nueva conexión: " + puertoConnect);
+                consola.println("Servidor en " + puerto + " dice: Esperando confirmación");
+
+                // esperar confirmación
+                final int nBytes = entrada.read(buffer);
+
+                // procesar lectura
+                final char[] chars = new char[nBytes];
+                for (int i = 0; i < chars.length; i++)
+                    chars[i] = (char) buffer[i];
+
+                // comprobar que el eco del puerto es correcto
+                if (Integer.valueOf(String.valueOf(chars)) != puertoConnect) {
+                    break;
+                } else {
+                    consola.println(
+                            "Servidor en " + puerto + " dice: Negociación de puerto satisfactoria: " + puertoConnect);
+                    // crear un hilo para comunicar por el nuevo puerto. con el numero de puerto como nombre
+                    final ThreadServer t = new ThreadServer(puertoConnect, String.valueOf(chars));
+                    t.start();
+                }
+
+            }
+            
+            serverSocket.close();
+            throw new ConnectException("Servidor en " + puerto + "Puerto negociado incorrecto");
+
+        } catch (final ConnectException e) {
+
+            System.err.println(e.toString());
+            e.printStackTrace();
+
+        } catch (final IOException e) {
+
+            System.err.println(e);
+            e.printStackTrace();
+
+        }
+    }
+
+    @Override
+    public String toString() {
+
+        return "Servidor [buffer=" + Arrays.toString(buffer) + ", consola=" + consola + ", pm=" + pm + ", puerto="
+                + puerto + ", serverSocket=" + serverSocket + "]";
+                
+    }
+
     // PC:192.168.0.160
     // Portátil:192.168.0.169
     // Movil:192.168.0.3
     private final static int DEFAULT_PORT = 1024;
-    int puerto;
-    final byte[] b = new byte[256];
-    ServerSocket serverSocket;
+    private int puerto;
+    private final char[] buffer = new char[256];
+    private ServerSocket serverSocket;
 
     /*
      * Un InputStreamReader es un puente entre flujos de bytes y flujos de
@@ -87,100 +229,12 @@ public class Servidor extends Thread {
      * La clase java.nio.charset.CharsetEncoder debe usarse cuando se requiere más
      * control sobre el proceso de codificación.
      */
-    PrintWriter pantalla = new PrintWriter(System.out, true);
+    PrintWriter consola = new PrintWriter(System.out, true);
 
     PortsManager pm;
 
-    public Servidor(String string) {
+    public Servidor(final String string) {
         super(string);
     }
 
-    private int solicitarPuertoAUsuario() {
-        Scanner s = new Scanner(System.in);
-        while (true) {
-            System.out.println("\nSeleccione un puerto de escucha (" + PortsManager.MIN_PORT + " - "
-                    + PortsManager.MAX_PORT + ").");
-            System.out.println("<<< Press ENTER to Default >>>");
-            String in = s.nextLine();
-            try {
-                if (!in.equals("")) {
-                    if (PortsManager.MIN_PORT < Integer.parseInt(in) && Integer.parseInt(in) < PortsManager.MAX_PORT) {
-                        pm = new PortsManager(Integer.parseInt(in));
-                        break;
-                    } else {
-                        throw new RangePortsException();
-                    }
-                } else {
-                    pm = new PortsManager(PortsManager.DEFAULT_LISTEN_PORT);
-                    break;
-                }
-            } catch (NumberFormatException e) {
-                System.err.println("\nERROR: El valor introducido no es valido !!!\n");
-            } catch (RangePortsException e) {
-                System.err.println("\nERROR: Valor fuera del rango permitido. !!!\n");
-            }
-        }
-        s.close();
-        return pm.getListenPort();
-    }
-
-    @Override
-    public void run() {
-        puerto = solicitarPuertoAUsuario();
-        int puertoConnect = puerto;
-
-        try {
-
-            // instanciar socket servidor
-            serverSocket = new ServerSocket(puerto);
-            while (true) {
-                // informar de escucha
-                System.out.println("Servidor en " + puerto + " dice: " + "Servidor a la escucha");
-                // instanciar socket para recepciones
-                Socket socket;
-                socket = serverSocket.accept();
-                // mostrar información de socket cliente
-                System.out.println("Servidor en " + puerto + " dice: Conectado con: " + socket);
-                // conectar salida
-                final OutputStream salida = socket.getOutputStream();
-                // conectar entrada
-                final InputStream entrada = socket.getInputStream();
-                // Para informar del puerto a usar en la conexión
-                final PrintStream ps = new PrintStream(salida, true);
-                ps.println(++puertoConnect);
-                // mostrar puerto de nueva conexión
-                System.out.println("Servidor en " + puerto + " dice: Puerto para nueva conexión: " + puertoConnect);
-                System.out.println("Servidor en " + puerto + " dice: Esperando confirmación");
-                // esperar confirmación
-                final int nBytes = entrada.read(b);
-                // procesar lectura
-                final char[] chars = new char[nBytes];
-                for (int i = 0; i < chars.length; i++)
-                    chars[i] = (char) b[i];
-                // comprobar que el eco del puerto es correcto
-                if (Integer.valueOf(String.valueOf(chars)) != puertoConnect) {
-                    break;
-                } else {
-                    System.out.println(
-                            "Servidor en " + puerto + " dice: Negociación de puerto satisfactoria: " + puertoConnect);
-                    // crear un hilo para comunicar por el nuevo puerto. con el numero de puerto
-                    // como nombre
-                    final ThreadServerEcoTcp t = new ThreadServerEcoTcp(puertoConnect, String.valueOf(chars));
-                    t.start();
-                }
-            }
-            serverSocket.close();
-            throw new ConnectException("Servidor en " + puerto + "Puerto negociado incorrecto");
-        } catch (ConnectException e) {
-            System.err.println(e.toString());
-        } catch (IOException e) {
-            System.err.println(e);
-        }
-    }
-
-    // // TODO borrar despues de externalizar
-    // public static void main(final String[] args) throws IOException {
-    // Servidor serv = new Servidor("ServidorEco");
-    // serv.start();
-    // }
 }

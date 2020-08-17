@@ -7,7 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
-public class ThreadServerEcoTcp extends Thread {
+public class ThreadServer extends Thread {
     private final int puerto;
     private Socket tcp;
     private final ServerSocket serverSocket;
@@ -15,7 +15,7 @@ public class ThreadServerEcoTcp extends Thread {
     private InputStream entrada;
     public static int ConexionesActivas = 0;
 
-    public ThreadServerEcoTcp(final int puerto) throws IOException {
+    public ThreadServer(final int puerto) throws IOException {
         super();
         this.puerto = puerto;
         // iniciar servidor
@@ -23,7 +23,7 @@ public class ThreadServerEcoTcp extends Thread {
         ConexionesActivas++;
     }
 
-    public ThreadServerEcoTcp(final int puerto, final String nombreThread) throws IOException {
+    public ThreadServer(final int puerto, final String nombreThread) throws IOException {
         super(nombreThread);
         this.puerto = puerto;
         // iniciar servidor
@@ -69,6 +69,7 @@ public class ThreadServerEcoTcp extends Thread {
         } catch (final SocketException e) {
             ConexionesActivas--;
             System.err.println("Servidor en " + puerto + " dice: Conexión perdida !!!");
+            e.printStackTrace();
         } catch (final IOException e) {
             e.printStackTrace();
         } finally {
