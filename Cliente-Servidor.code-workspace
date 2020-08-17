@@ -12,7 +12,7 @@
 			"**/.settings": true,
 			"**/.factorypath": true
 		},
-		"debug.console.fontSize": 12,
-		"terminal.integrated.fontSize": 12
+		"debug.console.fontSize": 16,
+		"terminal.integrated.fontSize": 16
 	}
 }
