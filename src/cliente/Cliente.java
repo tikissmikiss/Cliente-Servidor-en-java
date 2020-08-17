@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
@@ -16,7 +15,7 @@ import java.util.StringTokenizer;
 import exceptions.IpAddressException;
 import exceptions.RangePortsException;
 
-public class ClienteEcoTcp extends Thread {
+public class Cliente extends Thread {
     // PC:192.168.0.160
     // Portátil:192.168.0.169
     // Movil:192.168.0.3
@@ -89,46 +88,46 @@ public class ClienteEcoTcp extends Thread {
      * La clase java.nio.charset.CharsetEncoder debe usarse cuando se requiere más
      * control sobre el proceso de codificación.
      */
-    PrintWriter pantalla = new PrintWriter(System.out, true);
+     private static PrintWriter pantalla = new PrintWriter(System.out, true);
 
     // constructores
-    public ClienteEcoTcp(int puerto, String nombreThread) {
+    public Cliente(int puerto, String nombreThread) {
         super(nombreThread);
         this.puerto = puerto;
         this.address = DEFAULT_ADDRESS;
     }
 
-    public ClienteEcoTcp(int puerto) {
+    public Cliente(int puerto) {
         super();
         this.puerto = puerto;
         this.address = DEFAULT_ADDRESS;
     }
 
-    public ClienteEcoTcp(String address, String nombreThread) {
+    public Cliente(String address, String nombreThread) {
         super(nombreThread);
         this.address = address;
         this.puerto = DEFAULT_PORT;
     }
 
-    public ClienteEcoTcp(String address) {
+    public Cliente(String address) {
         super();
         this.address = address;
         this.puerto = DEFAULT_PORT;
     }
 
-    public ClienteEcoTcp(String address, int puerto, String nombreThread) {
+    public Cliente(String address, int puerto, String nombreThread) {
         super(nombreThread);
         this.address = address;
         this.puerto = puerto;
     }
 
-    public ClienteEcoTcp(String address, int puerto) {
+    public Cliente(String address, int puerto) {
         super();
         this.address = address;
         this.puerto = puerto;
     }
 
-    public ClienteEcoTcp() {
+    public Cliente() {
         super();
         try {
             address = solicitarAddressAUsuario();
@@ -145,8 +144,8 @@ public class ClienteEcoTcp extends Thread {
     private static int solicitarPuertoAUsuario() throws IOException {
         String in = null;
         do {
-            System.out.println("Seleccione el puerto de escucha del servidor.");
-            System.out.println("<<< Press ENTER to Default (" + DEFAULT_PORT + ") >>>");
+            pantalla.println("Seleccione el puerto de escucha del servidor.");
+            pantalla.println("<<< Press ENTER to Default (" + DEFAULT_PORT + ") >>>");
 
             in = teclado.readLine();
 
@@ -172,8 +171,8 @@ public class ClienteEcoTcp extends Thread {
         String in = null;
         do {
             try {
-                System.out.println("Introduzca la dirección IP del servidor.");
-                System.out.println("<<< Press ENTER to Default (" + DEFAULT_ADDRESS + ") >>>");
+                pantalla.println("Introduzca la dirección IP del servidor.");
+                pantalla.println("<<< Press ENTER to Default (" + DEFAULT_ADDRESS + ") >>>");
                 in = teclado.readLine();
                 if (in.equals(""))
                     break;
@@ -269,12 +268,12 @@ public class ClienteEcoTcp extends Thread {
         }
     }
 
-    // TODO eliminar después de externalizar
-    public static void main(String[] args) throws UnknownHostException, IOException {
-        // int puerto = solicitarPuertoAUsuario();
-        // String address = solicitarAddressAUsuario();
+    // // TODO eliminar después de externalizar
+    // public static void main(String[] args) throws UnknownHostException, IOException {
+    //     // int puerto = solicitarPuertoAUsuario();
+    //     // String address = solicitarAddressAUsuario();
 
-        ClienteEcoTcp c = new ClienteEcoTcp();
-        c.start();
-    }
+    //     Cliente c = new Cliente();
+    //     c.start();
+    // }
 }

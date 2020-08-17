@@ -1,8 +1,8 @@
-import servidor.ServidorEcoTcp;
+import servidor.Servidor;
 
 public class AppServidor {
     public static void main(String[] args) throws Exception {
-        ServidorEcoTcp s = new ServidorEcoTcp("ServidorEco");
+        Servidor s = new Servidor("ServidorEco");
         s.start();
     }
 }
