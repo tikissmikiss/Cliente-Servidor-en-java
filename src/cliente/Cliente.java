@@ -55,17 +55,18 @@ public class Cliente extends Thread {
             // DataOutputStream socketWriter = new DataOutputStream(salida);
 
             // esperar puerto de conexión
-            consola.print("Servidor en " + puerto + " dice: Esperando resignación de puerto...");
+            consola.println("Servidor en " + puerto + " dice: Esperando resignación de puerto...");
             longIn = entrada.read(bufferIn);
 
             // mostrar puerto recibido
-            consola.print("Servidor en " + puerto + " dice: ");
+            consola.println("Servidor en " + puerto + " dice: ");
             // TODO consola.write(bufferIn, 0, longIn);
             consola.println(bufferIn);
             consola.println();
 
             // devolver eco
             salida.write(bufferIn, 0, longIn);
+            salida.flush();
 
             // procesar lectura
             char[] chars = new char[longIn];
@@ -87,6 +88,7 @@ public class Cliente extends Thread {
 
                 // enviarla por el socket
                 salida.write(bufferOut, 0, longOut);
+                salida.flush();
                 /*
                  * Comprueba si cliente termina la conexión. comprueba los dos primeros bytes
                  * para compatibilizar con sistemas solo CR (retorno de carro) y con sistemas
@@ -100,7 +102,8 @@ public class Cliente extends Thread {
                 longIn = entrada.read(bufferIn);
                 // mostrar respuesta
                 consola.print("Servidor en " + puerto + " dice: ");
-                consola.write(bufferIn, 0, longIn);
+                consola.write(bufferIn,0, longIn);
+                consola.flush();
             }
             tcp.close();
             tcp2.close();
