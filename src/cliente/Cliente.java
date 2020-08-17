@@ -319,7 +319,7 @@ public class Cliente extends Thread {
     // Portátil:192.168.0.169
     // Movil:192.168.0.3
     private final static int DEFAULT_PORT = 1024;
-    private final static String DEFAULT_ADDRESS = "192.168.0.169";
+    private final static String DEFAULT_ADDRESS = "192.168.0.160";
 
     // // TODO eliminar después de externalizar
     // public static void main(String[] args) throws UnknownHostException,
