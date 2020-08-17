@@ -55,6 +55,7 @@ public class Cliente extends Thread {
             // DataOutputStream socketWriter = new DataOutputStream(salida);
 
             // esperar puerto de conexión
+            consola.print("Servidor en " + puerto + " dice: Esperando resignación de puerto...");
             longIn = entrada.read(bufferIn);
 
             // mostrar puerto recibido
